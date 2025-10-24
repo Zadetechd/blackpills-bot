@@ -15,13 +15,13 @@ from telegram.ext import (
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from flask import Flask, render_template_string
-imthreading
+import threading
 
 # ==================== CONFIGURATION ====================
 BOT_TOKEN = "7886209681:AAEAnX1vqna6LWycavtd8RMjX_57khuCtCk"
 PAYMENT_GROUP_ID = -4946335222
 DEPOSIT_GROUP_ID = -4818580578
-DASHBOARD_URL = os.environ.get('https://blackpills-bot.onrender.com', 'http://localhost:5000')
+DASHBOARD_URL = "https://blackpills-bot.onrender.com"
 ADMIN_PASSCODE = "nova"
 
 PRIVILEGED_USERS = ["gann0r"]
@@ -825,7 +825,7 @@ def dashboard():
 
 def run_flask():
     port = int(os.environ.get('PORT', 9876))
-app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 # ==================== MAIN ====================
 def main():
     init_db()
@@ -881,3 +881,4 @@ def main():
 if __name__ == '__main__':
 
     main()
+
