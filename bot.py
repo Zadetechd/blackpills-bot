@@ -863,8 +863,8 @@ def api_stats():
         }
     except Exception as e:
         return {'success': False, 'error': str(e)}, 500
-```
 
+# ==================== MAIN ====================
 def run_telegram_bot():
     """Run Telegram bot in background"""
     application = Application.builder().token(BOT_TOKEN).build()
@@ -914,4 +914,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
