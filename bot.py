@@ -824,7 +824,7 @@ def dashboard():
     )
 
 def run_flask():
-    port = int(os.environ.get('PORT', 9876))
+    port = int(os.environ.get('PORT', 8000))
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 # ==================== MAIN ====================
 def main():
@@ -881,4 +881,5 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
