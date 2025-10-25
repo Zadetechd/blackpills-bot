@@ -822,22 +822,8 @@ def dashboard():
         payment_stats=payment_stats,
         deposit_stats=deposit_stats
     )
-
-def run_flask():
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
-# ==================== MAIN ====================
-def main():
-    init_db()
-    
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.INFO
-    )
-    
+def run_telegram_bot():
+    """Run Telegram bot in background"""
     application = Application.builder().token(BOT_TOKEN).build()
     
     application.add_handler(CommandHandler("start", start_command))
@@ -849,37 +835,39 @@ def main():
     application.add_handler(CommandHandler("addadmin", add_admin_command))
     application.add_handler(CommandHandler("removeadmin", remove_admin_command))
     application.add_handler(CommandHandler("listadmins", list_admins_command))
-    
-    # Single combined handler for both groups
     application.add_handler(MessageHandler((filters.TEXT | filters.CAPTION) & ~filters.COMMAND, handle_group_messages))
-    
-    # Add callback query handler for button clicks
     application.add_handler(CallbackQueryHandler(handle_button_callback))
     
     async def post_init_setup(app):
         scheduler = AsyncIOScheduler(timezone=GHANA_TZ)
         scheduler.add_job(send_daily_summary, trigger='cron', hour=20, minute=30, args=[app])
         scheduler.start()
-        logging.info("Scheduler started - Daily summary at 8:30 PM")
+        logging.info("Scheduler started")
     
     application.post_init = post_init_setup
+    application.run_polling(allowed_updates=[Update.MESSAGE, Update.CALLBACK_QUERY, Update.EDITED_MESSAGE])
+
+def main():
+    """Main entry point - Flask runs as primary process"""
+    init_db()
     
-    print("🤖 Blackpills Bot is starting...")
-    print("📊 Dashboard running at http://localhost:5000")
-    print("✅ Payment group: Silent logging with ✅ emoji only")
-    print("✅ Deposit group: Inline buttons for approval/rejection")
-    print("✅ Dashboard: Modern UI with soft rounded corners")
-    
-    application.run_polling(
-        allowed_updates=[
-            Update.MESSAGE,
-            Update.CALLBACK_QUERY,
-            Update.EDITED_MESSAGE,
-        ]
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO
     )
+    
+    print("🤖 Starting Blackpills Bot...")
+    
+    # Start Telegram bot in background thread
+    bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
+    bot_thread.start()
+    
+    print("✅ Bot thread started")
+    print("📊 Starting Flask dashboard...")
+    
+    # Run Flask as main process (this is what Choreo sees)
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
-
     main()
-
-
