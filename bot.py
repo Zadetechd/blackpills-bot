@@ -822,6 +822,49 @@ def dashboard():
         payment_stats=payment_stats,
         deposit_stats=deposit_stats
     )
+
+@app.route('/api/stats')
+def api_stats():
+    """API endpoint that returns JSON data"""
+    try:
+        total_payments = get_today_total_payments()
+        total_deposits = get_today_total_deposits()
+        transactions = get_all_transactions_today()
+        payment_stats, deposit_stats = get_user_statistics_today()
+        current_date = datetime.now(GHANA_TZ).strftime('%A, %B %d, %Y')
+        current_time = datetime.now(GHANA_TZ).strftime('%I:%M:%S %p')
+        
+        formatted_transactions = []
+        for txn in transactions[:20]:
+            user, amount, timestamp, txn_type, approved_by = txn
+            time_obj = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+            formatted_time = time_obj.strftime('%I:%M %p')
+            formatted_transactions.append({
+                'user': user,
+                'amount': float(amount),
+                'time': formatted_time,
+                'type': txn_type,
+                'approved_by': approved_by
+            })
+        
+        return {
+            'success': True,
+            'date': current_date,
+            'time': current_time,
+            'totals': {
+                'payments': float(total_payments),
+                'deposits': float(total_deposits)
+            },
+            'transactions': formatted_transactions,
+            'user_stats': {
+                'payments': [[user, count, float(total)] for user, count, total in payment_stats],
+                'deposits': [[user, count, float(total)] for user, count, total in deposit_stats]
+            }
+        }
+    except Exception as e:
+        return {'success': False, 'error': str(e)}, 500
+```
+
 def run_telegram_bot():
     """Run Telegram bot in background"""
     application = Application.builder().token(BOT_TOKEN).build()
@@ -871,3 +914,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
